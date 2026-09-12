@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import html
 import json
 import re
 from datetime import date
@@ -12,6 +13,7 @@ from pathlib import Path
 MAX_CANDIDATES = 7
 SETTINGS_FILENAME = "settings.json"
 ALLOWED_TYPES = {"concept", "decision", "scenario", "error-pattern"}
+OPTIONAL_DETAIL_FIELDS = {"context", "explanation", "pitfall"}
 DOMAIN_TAGS = {
     "robotics", "course-ai", "course-os", "course-javaee", "course-db",
     "course-se", "project-lingualoop", "project-jindian"
@@ -50,6 +52,9 @@ def validate(payload: dict) -> list[str]:
         for field in ("front", "back", "reason"):
             if not isinstance(card.get(field), str) or not card[field].strip():
                 errors.append(f"candidate {i} needs non-empty {field}")
+        for field in OPTIONAL_DETAIL_FIELDS:
+            if field in card and not isinstance(card[field], str):
+                errors.append(f"candidate {i}.{field} must be a string when provided")
         if not isinstance(card.get("tags"), list) or not card["tags"]:
             errors.append(f"candidate {i} needs tags")
         for flag in ("memory", "reference", "practice"):
@@ -85,6 +90,35 @@ def resolve_runbooks_root(root: Path, override: Path | None = None) -> Path:
     return configured_path if configured_path.is_absolute() else root / configured_path
 
 
+def html_text(value: str) -> str:
+    return html.escape(value).replace("\n", "<br>")
+
+
+def format_front(card: dict) -> str:
+    context = card.get("context", "").strip()
+    question = html_text(card["front"])
+    if not context:
+        return question
+    return (
+        f'<div class="review-context"><strong>场景</strong><br>{html_text(context)}</div>'
+        f'<hr><div class="review-question">{question}</div>'
+    )
+
+
+def format_back(card: dict) -> str:
+    sections = [
+        f'<div class="review-answer"><strong>答案</strong><br>{html_text(card["back"])}</div>'
+    ]
+    labels = (("explanation", "为什么", "review-explanation"), ("pitfall", "注意", "review-pitfall"))
+    for field, label, css_class in labels:
+        value = card.get(field, "").strip()
+        if value:
+            sections.append(
+                f'<div class="{css_class}"><strong>{label}</strong><br>{html_text(value)}</div>'
+            )
+    return "<br>".join(sections)
+
+
 def append_outputs(
     payload: dict, root: Path, runbooks_root: Path | None = None
 ) -> tuple[Path, int]:
@@ -105,7 +139,17 @@ def append_outputs(
         md_lines += ["", "## Practice", payload["practice_prompt"]]
     md_lines += ["", "## Candidates"]
     for card in payload["candidates"]:
-        md_lines += [f"- **{card['type']}** {card['front']}", f"  - {card['back']}", f"  - memory={card['memory']} reference={card['reference']} practice={card['practice']}"]
+        md_lines += [f"- **{card['type']}** {card['front']}"]
+        if card.get("context"):
+            md_lines.append(f"  - 场景：{card['context']}")
+        md_lines.append(f"  - 答案：{card['back']}")
+        if card.get("explanation"):
+            md_lines.append(f"  - 为什么：{card['explanation']}")
+        if card.get("pitfall"):
+            md_lines.append(f"  - 注意：{card['pitfall']}")
+        md_lines.append(
+            f"  - memory={card['memory']} reference={card['reference']} practice={card['practice']}"
+        )
     md_path.write_text("\n".join(md_lines) + "\n", encoding="utf-8")
     tsv_path = anki / "AI-Learning-Review.tsv"
     added = 0
@@ -119,7 +163,7 @@ def append_outputs(
             if not card["memory"] or card["id"] in existing:
                 continue
             tags = " ".join(card["tags"])
-            writer.writerow([card["front"], card["back"], tags, card["id"]])
+            writer.writerow([format_front(card), format_back(card), tags, card["id"]])
             added += 1
     if payload.get("reference_note"):
         (runbooks / f"{slug(source.get('title', 'review'))}.md").write_text(

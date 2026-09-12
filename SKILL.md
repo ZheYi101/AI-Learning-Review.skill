@@ -34,6 +34,7 @@ description: Turn AI-assisted study and project sessions into a small, searchabl
 6. 只有稳定、可跨场景、忘掉代价高的内容才推荐 `memory=true`。
 7. 复杂流程必须拆成情境题或多个决策点，不制作“背完整教程”卡。
 8. 项目只保存可复用决策与经验；具体代码、路径和版本差异进 reference。
+9. 对每张 `memory=true` 卡，必须给出 `context` 和 `explanation`；`context` 说明真实任务场景但不泄露答案，`explanation` 说明因果或关键区分。高风险或易混淆内容再给出 `pitfall`。
 
 ## 输出格式
 
@@ -47,8 +48,11 @@ description: Turn AI-assisted study and project sessions into a small, searchabl
     {
       "id": "stable-slug",
       "type": "concept|decision|scenario|error-pattern",
+      "context": "1-3 句：当时在做什么、目标是什么、为什么此刻需要这个判断；不能泄露答案",
       "front": "一个需要主动回忆的问题；十秒内可理解",
-      "back": "准确、短、可核对的答案；必要时含验证点",
+      "back": "先给准确、短、可核对的答案；必要时含验证点",
+      "explanation": "为什么这个答案成立，或它与相近概念的关键区别",
+      "pitfall": "一个常见误区、失败后果或适用边界；没有则为空字符串",
       "tags": ["domain::robotics", "type::concept"],
       "memory": true,
       "reference": true,
@@ -67,7 +71,7 @@ description: Turn AI-assisted study and project sessions into a small, searchabl
 - 目标牌组固定为 `AI Learning Review`，不创建按领域拆分的牌组。
 - 使用标签区分领域和类型，例如 `domain::course-os`、`domain::project-lingualoop`、`type::scenario`。
 - 每日新卡建议 3-5 张，复习上限 30 张；以 12 分钟为硬上限，达到即停止。
-- 答案应能在约 10 秒内核对。连续多次失败的卡片应重写、拆分、暂停或删除。
+- 正面按“场景 → 问题”呈现，背面按“答案 → 为什么 → 注意”呈现。答案本身应能在约 10 秒内核对；场景与解释用于恢复上下文，不应变成长教程。
 - 不追赶积压；未完成的卡片顺延。
 
 ## 文件写入

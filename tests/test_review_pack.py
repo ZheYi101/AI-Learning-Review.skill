@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import csv
 import tempfile
 import unittest
 from pathlib import Path
@@ -28,8 +29,11 @@ def payload() -> dict:
             {
                 "id": "ssh-key-login",
                 "type": "scenario",
+                "context": "You are replacing password login on a new server and must avoid locking yourself out.",
                 "front": "How should key authentication be verified?",
                 "back": "Test a new session before disabling passwords.",
+                "explanation": "A separate session proves that the public key, file permissions, and account selection work before the fallback is removed.",
+                "pitfall": "Do not copy the private key to the server or disable passwords before the new session succeeds.",
                 "tags": ["domain::project-jindian", "type::scenario"],
                 "memory": True,
                 "reference": True,
@@ -61,6 +65,19 @@ class ReviewPackTests(unittest.TestCase):
             _, added = review_pack.append_outputs(payload(), root)
 
             self.assertEqual(added, 0)
+
+    def test_tsv_includes_context_explanation_and_pitfall(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "learning-review"
+            review_pack.append_outputs(payload(), root)
+
+            with (root / "anki" / "AI-Learning-Review.tsv").open(encoding="utf-8") as file:
+                row = next(csv.reader(file, delimiter="\t"))
+            self.assertIn("场景", row[0])
+            self.assertIn("locking yourself out", row[0])
+            self.assertIn("答案", row[1])
+            self.assertIn("为什么", row[1])
+            self.assertIn("注意", row[1])
 
     def test_saved_runbooks_root_can_point_to_an_external_knowledge_base(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

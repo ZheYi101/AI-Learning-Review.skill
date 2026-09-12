@@ -20,8 +20,11 @@ Recommend `practice=true` when recall alone would not test the desired capabilit
 
 ## Card Construction
 
-- Ask one question with a concrete retrieval target.
-- Keep the answer short enough to check in roughly ten seconds.
+- Write a 1-3 sentence `context` that restores the concrete task, goal, and decision point without giving away the answer.
+- Ask one question with a concrete retrieval target after the context.
+- Put the short, checkable answer first; then add an `explanation` for the causal model or key distinction.
+- Add a `pitfall` only for a likely misconception, dangerous action, or meaningful boundary.
+- Keep the answer itself short enough to check in roughly ten seconds. Context and explanation may be longer, but must not become a tutorial.
 - Use `type::concept`, `type::decision`, `type::scenario`, or `type::error-pattern`.
 - Give each card a stable `id`; reuse it to prevent duplicate TSV rows.
 - Remove, pause, split, or rewrite cards that repeatedly fail.
