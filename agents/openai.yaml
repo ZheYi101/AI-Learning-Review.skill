@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Learning Review"
+  short_description: "Turn AI-assisted learning into a small Anki review queue"
+  default_prompt: "Use $ai-learning-review to extract a small set of high-value review candidates from this study or project session."
