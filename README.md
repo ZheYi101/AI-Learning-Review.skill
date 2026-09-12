@@ -78,9 +78,8 @@ learning-review/
 `-- reviews/
     |-- YYYY-MM-DD-topic.json
     `-- YYYY-MM-DD-topic.md
-
-runbooks/
-`-- topic.md
+`-- runbooks/
+    `-- topic.md
 ```
 
 将 `learning-review/anki/AI-Learning-Review.tsv` 导入 Anki，选择 Tab 分隔，字段映射为 `Front`、`Back`、`Tags`、`Source`。使用一个牌组 `AI Learning Review`，按标签而不是拆分牌组组织领域。

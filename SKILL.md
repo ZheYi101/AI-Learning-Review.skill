@@ -77,7 +77,7 @@ description: Turn AI-assisted study and project sessions into a small, searchabl
 - `learning-review/reviews/YYYY-MM-DD-<slug>.json`：上述完整 JSON
 - `learning-review/reviews/YYYY-MM-DD-<slug>.md`：人类可读摘要
 - `learning-review/anki/AI-Learning-Review.tsv`：追加新卡，字段为 `Front<TAB>Back<TAB>Tags<TAB>Source`
-- `runbooks/<slug>.md`：仅在 `reference=true` 时写入或更新
+- `learning-review/runbooks/<slug>.md`：仅在 `reference=true` 时写入或更新
 
 不要覆盖同一 `id`；重复整理应更新对应记录或跳过，并在摘要中说明。
 

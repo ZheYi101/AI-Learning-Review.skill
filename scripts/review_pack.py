@@ -63,7 +63,7 @@ def append_outputs(payload: dict, root: Path) -> tuple[Path, int]:
     stem = f"{stamp}-{slug(source.get('title', 'review'))}"
     reviews = root / "reviews"
     anki = root / "anki"
-    runbooks = root.parent / "runbooks"
+    runbooks = root / "runbooks"
     reviews.mkdir(parents=True, exist_ok=True)
     anki.mkdir(parents=True, exist_ok=True)
     runbooks.mkdir(parents=True, exist_ok=True)
