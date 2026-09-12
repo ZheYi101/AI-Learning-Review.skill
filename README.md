@@ -84,6 +84,16 @@ learning-review/
 
 将 `learning-review/anki/AI-Learning-Review.tsv` 导入 Anki，选择 Tab 分隔，字段映射为 `Front`、`Back`、`Tags`、`Source`。使用一个牌组 `AI Learning Review`，按标签而不是拆分牌组组织领域。
 
+### 将 Runbook 放进 Obsidian
+
+默认 Runbook 位于 `learning-review/runbooks/`。如果你使用 Obsidian 或其他笔记库，可以一次配置到自己的知识库目录：
+
+```powershell
+python .\scripts\review_pack.py --root .\learning-review --configure-runbooks-root "D:\Path\To\Obsidian Vault\Runbooks"
+```
+
+这会在 `learning-review/settings.json` 保存 `runbooks_root`；之后所有带 `reference_note` 的导出都会写入该目录。单次临时改用另一位置时，在普通导出命令加上 `--runbooks-root "D:\Another\Folder"`。Skill 不会猜测或自动选择你的 Vault 路径。
+
 ## 每日体验
 
 这套 workflow 有一个硬上限：

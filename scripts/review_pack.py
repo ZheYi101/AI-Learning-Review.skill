@@ -10,6 +10,7 @@ from datetime import date
 from pathlib import Path
 
 MAX_CANDIDATES = 7
+SETTINGS_FILENAME = "settings.json"
 ALLOWED_TYPES = {"concept", "decision", "scenario", "error-pattern"}
 DOMAIN_TAGS = {
     "robotics", "course-ai", "course-os", "course-javaee", "course-db",
@@ -57,13 +58,42 @@ def validate(payload: dict) -> list[str]:
     return errors
 
 
-def append_outputs(payload: dict, root: Path) -> tuple[Path, int]:
+def read_settings(root: Path) -> dict:
+    path = root / SETTINGS_FILENAME
+    if not path.exists():
+        return {}
+    settings = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(settings, dict):
+        raise ValueError(f"{path} must contain a JSON object")
+    return settings
+
+
+def write_settings(root: Path, runbooks_root: Path) -> Path:
+    root.mkdir(parents=True, exist_ok=True)
+    settings = read_settings(root)
+    settings["runbooks_root"] = str(runbooks_root)
+    path = root / SETTINGS_FILENAME
+    path.write_text(json.dumps(settings, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def resolve_runbooks_root(root: Path, override: Path | None = None) -> Path:
+    configured = override or read_settings(root).get("runbooks_root")
+    if not configured:
+        return root / "runbooks"
+    configured_path = Path(configured)
+    return configured_path if configured_path.is_absolute() else root / configured_path
+
+
+def append_outputs(
+    payload: dict, root: Path, runbooks_root: Path | None = None
+) -> tuple[Path, int]:
     source = payload["source"]
     stamp = source.get("date") or date.today().isoformat()
     stem = f"{stamp}-{slug(source.get('title', 'review'))}"
     reviews = root / "reviews"
     anki = root / "anki"
-    runbooks = root / "runbooks"
+    runbooks = resolve_runbooks_root(root, runbooks_root)
     reviews.mkdir(parents=True, exist_ok=True)
     anki.mkdir(parents=True, exist_ok=True)
     runbooks.mkdir(parents=True, exist_ok=True)
@@ -100,16 +130,30 @@ def append_outputs(payload: dict, root: Path) -> tuple[Path, int]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("payload", type=Path, help="review JSON produced by ai-learning-review")
+    parser.add_argument("payload", type=Path, nargs="?", help="review JSON produced by ai-learning-review")
     parser.add_argument("--root", type=Path, default=Path("learning-review"), help="review root directory")
+    parser.add_argument(
+        "--runbooks-root", type=Path,
+        help="one-off Runbook output directory; overrides saved configuration",
+    )
+    parser.add_argument(
+        "--configure-runbooks-root", type=Path, metavar="PATH",
+        help="save the default Runbook output directory in root/settings.json",
+    )
     args = parser.parse_args()
+    if args.configure_runbooks_root:
+        settings_path = write_settings(args.root, args.configure_runbooks_root)
+        print(f"saved_runbooks_root={settings_path}")
+        return 0
+    if args.payload is None:
+        parser.error("payload is required unless --configure-runbooks-root is used")
     payload = json.loads(args.payload.read_text(encoding="utf-8"))
     errors = validate(payload)
     if errors:
         for error in errors:
             print(f"ERROR: {error}")
         return 2
-    path, added = append_outputs(payload, args.root)
+    path, added = append_outputs(payload, args.root, args.runbooks_root)
     print(f"saved={path}")
     print(f"anki_cards_added={added}")
     return 0

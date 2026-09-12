@@ -12,6 +12,8 @@ Reject items that are one-off paths, volatile flags, copied code, full procedure
 
 Recommend `reference=true` for exact commands, version-specific details, complete runbooks, project context, and safety notes. Preserve the source path or URL and the date so future readers can judge freshness.
 
+Runbooks belong in the user's chosen knowledge base, not necessarily beside review data. The default is `learning-review/runbooks/`; use the saved `runbooks_root` configuration when the user has explicitly chosen another location, such as an Obsidian Vault. Never infer an external path.
+
 ## Practice
 
 Recommend `practice=true` when recall alone would not test the desired capability. Prefer one bounded scenario that asks for a choice, an ordering, a verification step, or a diagnostic branch. Keep it answerable within three minutes.

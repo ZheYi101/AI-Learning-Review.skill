@@ -62,6 +62,30 @@ class ReviewPackTests(unittest.TestCase):
 
             self.assertEqual(added, 0)
 
+    def test_saved_runbooks_root_can_point_to_an_external_knowledge_base(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            root = base / "learning-review"
+            vault_runbooks = base / "obsidian-vault" / "Runbooks"
+            review_pack.write_settings(root, vault_runbooks)
+
+            review_pack.append_outputs(payload(), root)
+
+            self.assertTrue((vault_runbooks / "ssh-public-key-login.md").exists())
+            self.assertFalse((root / "runbooks").exists())
+
+    def test_explicit_runbooks_root_overrides_saved_location(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            root = base / "learning-review"
+            review_pack.write_settings(root, base / "saved")
+            override = base / "override"
+
+            review_pack.append_outputs(payload(), root, override)
+
+            self.assertTrue((override / "ssh-public-key-login.md").exists())
+            self.assertFalse((base / "saved").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

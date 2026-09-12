@@ -77,7 +77,15 @@ description: Turn AI-assisted study and project sessions into a small, searchabl
 - `learning-review/reviews/YYYY-MM-DD-<slug>.json`：上述完整 JSON
 - `learning-review/reviews/YYYY-MM-DD-<slug>.md`：人类可读摘要
 - `learning-review/anki/AI-Learning-Review.tsv`：追加新卡，字段为 `Front<TAB>Back<TAB>Tags<TAB>Source`
-- `learning-review/runbooks/<slug>.md`：仅在 `reference=true` 时写入或更新
+- Runbook 默认写入 `learning-review/runbooks/<slug>.md`；若用户配置 `runbooks_root`，写入其指定的知识库目录（例如 Obsidian Vault）
+
+用户可以一次配置 Runbook 位置：
+
+```powershell
+python .\scripts\review_pack.py --root .\learning-review --configure-runbooks-root "D:\Path\To\Obsidian\Runbooks"
+```
+
+之后可在单次导出中用 `--runbooks-root` 临时覆盖。不要替用户猜测或写入外部知识库路径，必须由用户明确指定。
 
 不要覆盖同一 `id`；重复整理应更新对应记录或跳过，并在摘要中说明。
 
