@@ -29,12 +29,14 @@ description: Turn AI-assisted study and project sessions into a small, searchabl
 1. 阅读本轮对话或用户指定材料，只使用有证据的内容。
 2. 提取：新理解、纠正的误解、可复用方法、未解决问题。
 3. 删除一次性路径、临时参数、重复内容、未经验证的推断和语言学习内容。
-4. 最多输出 3-7 个候选；学习很短时可以输出 0 个。
+4. 输出一个 `episode_capsule`，再输出最多 3-7 个候选；学习很短时可以输出 0 个候选。
 5. 每个候选都要给出 `memory`、`reference`、`practice` 三个布尔判断及理由。
 6. 只有稳定、可跨场景、忘掉代价高的内容才推荐 `memory=true`。
 7. 复杂流程必须拆成情境题或多个决策点，不制作“背完整教程”卡。
 8. 项目只保存可复用决策与经验；具体代码、路径和版本差异进 reference。
-9. 对每张 `memory=true` 卡，必须给出 `context` 和 `explanation`；`context` 说明真实任务场景但不泄露答案，`explanation` 说明因果或关键区分。高风险或易混淆内容再给出 `pitfall`。
+9. `atomic` 是默认级别：只问一个可在约 10 秒内提取的目标，可带一句 `cue`，不写装饰性背景。
+10. `case` 只用于决策、排错、安全或流程顺序；每次最多 1 张，必须带 2-4 句 `context`、一个 `verification`，并要求用户说出下一步/顺序/证据。
+11. `explanation` 只在有关键因果或易混淆点时提供，`pitfall` 只在有风险、边界或重复误区时提供；不要为了增加字数填充它们。
 
 ## 输出格式
 
@@ -44,15 +46,25 @@ description: Turn AI-assisted study and project sessions into a small, searchabl
 {
   "source": {"title": "", "kind": "theory|course|project|workflow", "domain": "", "path_or_url": "", "date": "YYYY-MM-DD"},
   "summary": "本轮真正学会了什么",
+  "episode_capsule": {
+    "situation": "这次学习/项目发生在什么任务中",
+    "goal": "当时要达成什么",
+    "turning_point": "哪个理解或决策改变了结果",
+    "next_time": "下次重新进入这个主题时从哪里开始",
+    "source_ref": "原对话、文件、项目或 URL"
+  },
   "candidates": [
     {
       "id": "stable-slug",
       "type": "concept|decision|scenario|error-pattern",
-      "context": "1-3 句：当时在做什么、目标是什么、为什么此刻需要这个判断；不能泄露答案",
+      "review_level": "atomic|case",
+      "cue": "atomic 可选：一句决定性使用线索，不泄露答案",
+      "context": "case 必填：2-4 句，包含 3-5 个会改变决策的条件，不写装饰性背景",
       "front": "一个需要主动回忆的问题；十秒内可理解",
       "back": "先给准确、短、可核对的答案；必要时含验证点",
-      "explanation": "为什么这个答案成立，或它与相近概念的关键区别",
-      "pitfall": "一个常见误区、失败后果或适用边界；没有则为空字符串",
+      "verification": "case 必填：用户回答后应说出的检查、证据或成功信号",
+      "explanation": "可选：为什么这个答案成立，或它与相近概念的关键区别",
+      "pitfall": "可选：一个常见误区、失败后果或适用边界",
       "tags": ["domain::robotics", "type::concept"],
       "memory": true,
       "reference": true,
@@ -71,7 +83,8 @@ description: Turn AI-assisted study and project sessions into a small, searchabl
 - 目标牌组固定为 `AI Learning Review`，不创建按领域拆分的牌组。
 - 使用标签区分领域和类型，例如 `domain::course-os`、`domain::project-lingualoop`、`type::scenario`。
 - 每日新卡建议 3-5 张，复习上限 30 张；以 12 分钟为硬上限，达到即停止。
-- 正面按“场景 → 问题”呈现，背面按“答案 → 为什么 → 注意”呈现。答案本身应能在约 10 秒内核对；场景与解释用于恢复上下文，不应变成长教程。
+- 原子卡正面只显示问题，最多加一条短 `cue`；情境卡正面才显示“场景 → 问题”。背面总是答案优先，按需显示验证、为什么、注意。
+- 每日 12 分钟主要刷原子卡，最后 3 分钟最多做 1 张 `mode::case` / `practice::case` 卡。
 - 不追赶积压；未完成的卡片顺延。
 
 ## 文件写入
