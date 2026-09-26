@@ -24,6 +24,8 @@ description: Turn AI-assisted study and project sessions into a small, searchabl
 
 如果来源不明确，先询问一句“这是理论、课程、项目还是流程？”；不要猜测项目归属。
 
+如果用户提供的是课程或项目音视频且没有转录稿，可用已安装的 `videocaptioner` CLI 生成字幕：先查看 `videocaptioner transcribe --help`，明确选择已配置的本地 ASR 引擎，再把生成的字幕作为来源材料。不要依赖默认识别服务；在线 ASR 会上传媒体，须先取得用户明确同意。语言学习媒体继续交给 `anki-context-card-maker`。
+
 ## 整理协议
 
 1. 阅读本轮对话或用户指定材料，只使用有证据的内容。
